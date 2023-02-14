@@ -56,7 +56,9 @@ int length() {
    int length = 0;
    struct node *thisnode;
    for(thisnode = head; thisnode != NULL; thisnode = thisnode->next) {
-      length++;
+      if(thisnode->d.printme) {
+        length++;
+      }
    }
    return length;
 }
@@ -79,7 +81,7 @@ struct dysong mostDanceable() {
    struct dysong dsong;
    struct node *thisnode;
    for(thisnode = head; thisnode != NULL; thisnode = thisnode->next) {
-      if(thisnode->d.danceability > maxdance) {
+      if(thisnode->d.danceability > maxdance && thisnode->d.printme) {
         maxdance = thisnode->d.danceability;
         dsong = thisnode->d;
       }
