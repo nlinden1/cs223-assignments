@@ -224,6 +224,7 @@ int main() {
       }
     }
     freelist();
+    close(songcsv);
     printf("Bye!\n");
     return 0;
 }
