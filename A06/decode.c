@@ -68,6 +68,7 @@ int main(int argc, char** argv) {
     }
   }
   printf("\n%s\n", matrix3);
+  free(matrix);
   free(matrix3);
   return 0;
 }

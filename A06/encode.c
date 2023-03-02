@@ -129,6 +129,7 @@ int main(int argc, char** argv) {
   //write the final matrix to a new file
   write_ppm(finalname, matrix, w, h);
   //free memory
+  free(matrix);
   free(message);
   return 0;
 }

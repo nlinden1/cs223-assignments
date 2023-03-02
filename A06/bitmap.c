@@ -6,14 +6,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-//constant throughout the program
-const int rows = 8;
-const int cols = 8;
-
 //prints the array
-void printArr(char twodmat[rows][cols]) {
-  for(int i = 0; i < rows; i++) { 
-	  for(int j = 0; j < cols; j++) {
+void printArr(char twodmat[8][8]) {
+  for(int i = 0; i < 8; i++) { 
+	  for(int j = 0; j < 8; j++) {
 	    printf("%c ", twodmat[i][j]);
 	  }
 	printf("\n");
@@ -26,12 +22,12 @@ int main() {
   scanf(" %lx", &img);
   printf("Image (unsigned long): %lx\n", img);
   unsigned long mask = 0x1;
-  char bitmap[rows][cols];
+  char bitmap[8][8];
   //iterate through the array, use the mask to check the bit
   //if 1, add @ to the 2d array
   //this method works bottom to top, right to left
-  for(int i = 0; i < rows; i++) {
-    for(int j = 0; j < cols; j++) {
+  for(int i = 0; i < 8; i++) {
+    for(int j = 0; j < 8; j++) {
       if(img & mask) {
         bitmap[i][j] = '@';
       } 
