@@ -1,9 +1,9 @@
 = Hardware specifications
 
-Where did your run your tests? A laptop, or goldengate?
+Where did your run your tests? A laptop, or goldengate? _I ran my tests on goldengate._
 
 What are the performance specifications of the machine: number and speed of
-processors, size of RAM? (use `lscpu` and `free -m`)
+processors, size of RAM? (use `lscpu` and `free -m`) _The machine has 64 processors with speed of 3999.971 MHz. Total RAM size is 95.3 GB, with 81 GB of that being free to use._
 
 = Single-process mandelbrot
 
@@ -13,11 +13,11 @@ the amount of time it takes to compute each image.
 [cols="1,1"]
 !===
 | Size | Time (s) 
-| 100 | todo
-| 400 | todo
-| 800 | todo
-| 1000 | todo
-| 2000 | todo
+| 100 | 0.017568
+| 400 | 0.278754
+| 800 | 1.108480
+| 1000 | 1.732836
+| 2000 | 6.968913
 !===
 
 = Multi-process mandelbrot
@@ -28,9 +28,9 @@ the amount of time it takes to compute each image.
 [cols="1,1"]
 !===
 | Size | Time (s) 
-| 100 | todo
-| 400 | todo
-| 800 | todo
-| 1000 | todo
-| 2000 | todo
+| 100 | 0.007842
+| 400 | 0.117959
+| 800 | 0.471165
+| 1000 | 0.734572
+| 2000 | 2.936399
 !===
