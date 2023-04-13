@@ -33,8 +33,6 @@ struct threadInfo {
   int maxIterations;
   //number thread {1,2,3,4}
   int threadID;
-  //color palette
-  struct ppm_pixel* palette;
   //final image array
   struct ppm_pixel* image;
   //"start index" and "end index" for rows and cols
@@ -57,8 +55,8 @@ void* helperfunc(void* threadstruct) {
   printf("Thread %d sub-image block: cols (%d, %d) ", mythreadstruct->threadID, mythreadstruct->startcol, mythreadstruct->endcol);
   printf("to rows (%d, %d)\n", mythreadstruct->startrow, mythreadstruct->endrow);
   //Step 1: determine Mandelbrot set membership
-  for(int i = mythreadstruct->startrow; (i < mythreadstruct->endrow) && (i < mythreadstruct->size); i++) { //rows
-    for(int j = mythreadstruct->startcol; (j < mythreadstruct->endcol) && (j < mythreadstruct->size); j++) { //columns
+  for(int i = mythreadstruct->startrow; i < mythreadstruct->endrow; i++) { //rows
+    for(int j = mythreadstruct->startcol; j < mythreadstruct->endcol; j++) { //columns
       //instance vars
       float x = 0.0;
       float y = 0.0;
@@ -83,8 +81,8 @@ void* helperfunc(void* threadstruct) {
       }
     }
   }
-  for(int i = mythreadstruct->startrow; (i < mythreadstruct->endrow) && (i < mythreadstruct->size); i++) { //rows
-    for(int j = mythreadstruct->startcol; (j < mythreadstruct->endcol) && (j < mythreadstruct->size); j++) { //columns
+  for(int i = mythreadstruct->startrow; i < mythreadstruct->endrow; i++) { //rows
+    for(int j = mythreadstruct->startcol; j < mythreadstruct->endcol; j++) { //columns
       //Step 2: compute visited counts
       int index = j * mythreadstruct->size + i;
       if(mythreadstruct->continuebool[index]) {
@@ -97,23 +95,23 @@ void* helperfunc(void* threadstruct) {
       float yfrac = (j * 1.0)/mythreadstruct->size;
       float x0 = mythreadstruct->xmin + xfrac * (mythreadstruct->xmax - mythreadstruct->xmin);
       float y0 = mythreadstruct->ymin + yfrac * (mythreadstruct->ymax - mythreadstruct->ymin);
-      while(x*x + y*y < 4) {
+      while((x*x + y*y) < 4) {
         xtmp = x*x - y*y + x0;
         y = 2*x*y + y0;
         x = xtmp;
-        float yrow = round(mythreadstruct->size * (y - mythreadstruct->ymin)/(mythreadstruct->ymax - mythreadstruct->ymin));
-        float xcol = round(mythreadstruct->size * (x - mythreadstruct->xmin)/(mythreadstruct->xmax - mythreadstruct->xmin));
+        int yrow = round(mythreadstruct->size * (y - mythreadstruct->ymin)/(mythreadstruct->ymax - mythreadstruct->ymin));
+        int xcol = round(mythreadstruct->size * (x - mythreadstruct->xmin)/(mythreadstruct->xmax - mythreadstruct->xmin));
         if (yrow < 0 || yrow >= mythreadstruct->size) {
           continue; // out of range
         }
         if (xcol < 0 || xcol >= mythreadstruct->size) {
           continue; // out of range
         }
-      
+        int countindex = yrow * mythreadstruct->size + xcol;      
         pthread_mutex_lock(&mutex);
-        mythreadstruct->countsArr[index]++;
-        if(mythreadstruct->countsArr[index] > mythreadstruct->maxCount) {
-          mythreadstruct->maxCount = mythreadstruct->countsArr[index];
+        mythreadstruct->countsArr[countindex]++;
+        if(mythreadstruct->countsArr[countindex] > mythreadstruct->maxCount) {
+          mythreadstruct->maxCount = mythreadstruct->countsArr[countindex];
         }
         pthread_mutex_unlock(&mutex);
       }  
@@ -123,8 +121,8 @@ void* helperfunc(void* threadstruct) {
   //pthread_barrier_wait(&barrier); //forced synchronization point
   printf("All threads have reached the barrier!\n");
   //Step 3: Compute colors
-  for(int i = mythreadstruct->startrow; (i < mythreadstruct->endrow) && (i < mythreadstruct->size); i++) { //rows
-    for(int j = mythreadstruct->startcol; (j < mythreadstruct->endcol) && (j < mythreadstruct->size); j++) { //columns
+  for(int i = mythreadstruct->startrow; i < mythreadstruct->endrow; i++) { //rows
+    for(int j = mythreadstruct->startcol; j < mythreadstruct->endcol; j++) { //columns
       int index = j * mythreadstruct->size + i;
       int value = 0;
       if(mythreadstruct->countsArr[index] > 0) {
@@ -151,15 +149,13 @@ int main(int argc, char* argv[]) {
   int mode = 0;
 
   int opt;
-  while ((opt = getopt(argc, argv, ":s:l:r:t:b:p:m:")) != -1) {
+  while ((opt = getopt(argc, argv, ":s:l:r:t:b:p:")) != -1) {
     switch (opt) {
       case 's': size = atoi(optarg); break;
       case 'l': xmin = atof(optarg); break;
       case 'r': xmax = atof(optarg); break;
       case 't': ymax = atof(optarg); break;
       case 'b': ymin = atof(optarg); break;
-      //added functionality: can set a "mode": if you want truly random colors vs. jittered, -m with 0 or not 0
-      case 'm': mode = atoi(optarg); break;
       case '?': printf("usage: %s -s <size> -l <xmin> -r <xmax> "
         "-b <ymin> -t <ymax> -p <numProcesses> -m <mode>\n", argv[0]); break;
     }
@@ -170,7 +166,6 @@ int main(int argc, char* argv[]) {
   printf("  Y range = [%.4f,%.4f]\n", ymin, ymax);
 
   // todo: your code here
-  // generate palette
   //instance vars
   pthread_t* threads;
   struct threadInfo* info;
@@ -180,32 +175,14 @@ int main(int argc, char* argv[]) {
   srand(timestamp);
   //start the timer
   gettimeofday(&tstart, NULL);
+
   //allocate memory
-  struct ppm_pixel* palette = malloc(sizeof(struct ppm_pixel) * maxIterations);
   struct ppm_pixel* image = malloc(sizeof(struct ppm_pixel) * size * size);
   int* countsArr = malloc(sizeof(int) * size * size);
   int* continuebool = malloc(sizeof(int) * size * size);
   //initialize to zero
   for(int x = 0; x < size * size; x++) {
     continuebool[x] = 0;
-  }
-  //randomize colors based on mode selected
-  if(mode) {
-    for(int i = 0; i<maxIterations; i++) {
-      palette[i].red = rand() % 255;
-      palette[i].green = rand() % 255;
-      palette[i].blue = rand() % 225;
-    }
-  }
-  else {
-    int basered = rand() % 255;
-    int basegreen = rand() % 255;
-    int baseblue = rand() % 255;
-    for(int i = 0; i<maxIterations; i++) {
-      palette[i].red = basered + rand() % 100 - 50;
-      palette[i].green = basegreen + rand() % 100 - 50;
-      palette[i].blue = baseblue + rand() % 100 - 50;
-    }
   }
   //alloc. memory for thread array and struct array
   threads = malloc(sizeof(pthread_t) * numProcesses);
@@ -224,7 +201,6 @@ int main(int argc, char* argv[]) {
     info[i].threadID = i + 1;
     info[i].maxIterations = maxIterations; 
     info[i].image = image; 
-    info[i].palette = palette;
     info[i].countsArr = countsArr;
     info[i].maxCount = 0;
     //assume true
@@ -270,11 +246,11 @@ int main(int argc, char* argv[]) {
   timer = tend.tv_sec - tstart.tv_sec + (tend.tv_usec - tstart.tv_usec)/1.e6;
 
   //print results
-  printf("Computed Mandelbrot set (%dx%d) in %f seconds\n", size, size, timer);
+  printf("Computed Buddhabrot set (%dx%d) in %f seconds\n", size, size, timer);
 
   //write file
   char finalname[128] = "";
-  char front[128] = "mandelbrot-";
+  char front[128] = "buddhabrot-";
   char hyphen[2] = "-";
   char back[5] = ".ppm";
   char timestampString[11] = "";
@@ -293,7 +269,6 @@ int main(int argc, char* argv[]) {
   write_ppm(front, image, size, size);
 
   //free memory
-  free(palette);
   free(image);
   free(info);
   free(threads);
