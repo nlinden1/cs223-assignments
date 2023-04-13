@@ -1,6 +1,6 @@
 /*----------------------------------------------
  * Author: Neville Linden
- * Date: 4/5/23
+ * Date: 4/12/23
  * Description: A program that generates a ppm file containing a graphical representation of the
  *              probability distribution over the trajectories of points that escape the Mandelbrot fractal using 4 threads.
  ---------------------------------------------*/
