@@ -190,7 +190,7 @@ int main(int argc, char* argv[]) {
   //initialize mutex
   pthread_mutex_init(&mutex, NULL);
   //initialize barrier
-  pthread_barrier_init(&barrier);
+  pthread_barrier_init(&barrier, NULL, numProcesses);
   //create threads
   for(int i = 0; i < numProcesses; i++) { 
     info[i].size = size;
