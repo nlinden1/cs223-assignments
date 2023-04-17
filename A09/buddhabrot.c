@@ -19,7 +19,7 @@
 //define global variable for Step 3, mutex, and barrier
 const float factor = 1.0/0.681;
 pthread_mutex_t mutex;
-//pthread_barrier_t barrier;
+pthread_barrier_t barrier;
 
 struct threadInfo {
   //size of the image
@@ -118,13 +118,13 @@ void* helperfunc(void* threadstruct) {
     }
   }
 
-  //pthread_barrier_wait(&barrier); //forced synchronization point
+  pthread_barrier_wait(&barrier); //forced synchronization point
   printf("All threads have reached the barrier!\n");
   //Step 3: Compute colors
   for(int i = mythreadstruct->startrow; i < mythreadstruct->endrow; i++) { //rows
     for(int j = mythreadstruct->startcol; j < mythreadstruct->endcol; j++) { //columns
       int index = j * mythreadstruct->size + i;
-      int value = 0;
+      float value = 0;
       if(mythreadstruct->countsArr[index] > 0) {
         value = log(mythreadstruct->countsArr[index]) / log(mythreadstruct->maxCount);
         value = pow(value, factor);
@@ -190,7 +190,7 @@ int main(int argc, char* argv[]) {
   //initialize mutex
   pthread_mutex_init(&mutex, NULL);
   //initialize barrier
-  //pthread_barrier_init(&barrier);
+  pthread_barrier_init(&barrier);
   //create threads
   for(int i = 0; i < numProcesses; i++) { 
     info[i].size = size;
@@ -240,7 +240,7 @@ int main(int argc, char* argv[]) {
   //destroy (free) the mutex
   pthread_mutex_destroy(&mutex);
   //and the barrier
-  //pthread_barrier_destroy(&barrier);
+  pthread_barrier_destroy(&barrier);
   //stop the timer
   gettimeofday(&tend, NULL);
   timer = tend.tv_sec - tstart.tv_sec + (tend.tv_usec - tstart.tv_usec)/1.e6;
