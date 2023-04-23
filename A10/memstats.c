@@ -36,6 +36,7 @@ void memstats(struct chunk* freelist, void* buffer[], int len) {
   while(next_chunk != NULL) {
     blocks++;
     blocks_free++;
+    bytes += next_chunk->size;
     bytes_free += next_chunk->size;
     next_chunk = next_chunk->next;
   }
